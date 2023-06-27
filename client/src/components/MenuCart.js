@@ -3,7 +3,7 @@ import { Close } from "@mui/icons-material";
 import { Link } from "react-router-dom";
 import React from "react";
 
-function MenuCart() {
+function MenuCartContent() {
   return (
     <Box sx={{ p: "1.5rem" }}>
       {true ? (
@@ -19,6 +19,54 @@ function MenuCart() {
           >
             Giỏ Hàng
           </Typography>
+          <Stack direction={"row"} sx={{ py: "10px", gap: ".5rem" }}>
+            <Box component={"img"} src={"/imgs/ProjectImg1.jpg"} sx={{ width: "60px", height: "60px" }} />
+            <Box>
+              <Typography sx={{ color: "#446084" }}>
+                Áo Sweater Fear Of God Essentials Pullover Mockneck Dark Heather Oatmeal - S
+              </Typography>
+              <Typography variant="body1" color="initial" sx={{ fontSize: ".85rem" }}>
+                1 X <b>1.900.000đ</b>
+              </Typography>
+            </Box>
+            <IconButton
+              sx={{
+                width: "24px",
+                height: "24px",
+                border: "2px solid #ccc",
+                "& .MuiSvgIcon-root": {
+                  fontSize: "14px",
+                },
+              }}
+            >
+              <Close></Close>
+            </IconButton>
+          </Stack>
+          <Divider />
+          <Stack direction={"row"} sx={{ py: "10px", gap: ".5rem" }}>
+            <Box component={"img"} src={"/imgs/ProjectImg1.jpg"} sx={{ width: "60px", height: "60px" }} />
+            <Box>
+              <Typography sx={{ color: "#446084" }}>
+                Áo Sweater Fear Of God Essentials Pullover Mockneck Dark Heather Oatmeal - S
+              </Typography>
+              <Typography variant="body1" color="initial" sx={{ fontSize: ".85rem" }}>
+                1 X <b>1.900.000đ</b>
+              </Typography>
+            </Box>
+            <IconButton
+              sx={{
+                width: "24px",
+                height: "24px",
+                border: "2px solid #ccc",
+                "& .MuiSvgIcon-root": {
+                  fontSize: "14px",
+                },
+              }}
+            >
+              <Close></Close>
+            </IconButton>
+          </Stack>
+          <Divider />
           <Stack direction={"row"} sx={{ py: "10px", gap: ".5rem" }}>
             <Box component={"img"} src={"/imgs/ProjectImg1.jpg"} sx={{ width: "60px", height: "60px" }} />
             <Box>
@@ -83,6 +131,39 @@ function MenuCart() {
         <Typography sx={{ color: "#777" }}>Chưa có sản phẩm nào trong giỏ hàng</Typography>
       )}
     </Box>
+  );
+}
+
+function MenuCart() {
+  return (
+    <>
+      <Box
+        sx={{
+          position: "absolute",
+          width: "257px",
+          maxHeight: "600px",
+          overflow: "scroll",
+          backgroundColor: "#fff",
+          display: "none",
+          opacity: 0,
+          zIndex: 4,
+          top: "100%",
+          right: "-8px",
+          boxShadow: "1px 1px 15px rgba(0,0,0,.15)",
+          transition: "all 2s ease-in-out",
+          "&::after": {
+            content: "''",
+            border: "8px solid transparent",
+            position: "absolute",
+            borderBottomColor: "#fff",
+            bottom: "100%",
+            right: "16px",
+          },
+        }}
+      >
+        <MenuCartContent></MenuCartContent>
+      </Box>
+    </>
   );
 }
 

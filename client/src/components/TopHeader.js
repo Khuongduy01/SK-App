@@ -195,33 +195,8 @@ function TopHeader() {
               <ShoppingBagOutlined></ShoppingBagOutlined>
             </Badge>
           </IconButton>
-          <Box
-            onClick={(e) => {
-              e.preventDefault();
-            }}
-            sx={{
-              position: "absolute",
-              width: "257px",
-              backgroundColor: "#fff",
-              display: "none",
-              opacity: 0,
-              zIndex: 4,
-              top: "100%",
-              right: "-8px",
-              boxShadow: "1px 1px 15px rgba(0,0,0,.15)",
-              transition: "all 2s ease-in-out",
-              "&::after": {
-                content: "''",
-                border: "8px solid transparent",
-                position: "absolute",
-                borderBottomColor: "#fff",
-                bottom: "100%",
-                right: "16px",
-              },
-            }}
-          >
-            <MenuCart></MenuCart>
-          </Box>
+
+          <MenuCart></MenuCart>
         </Box>
       </Stack>
     </Toolbar>
