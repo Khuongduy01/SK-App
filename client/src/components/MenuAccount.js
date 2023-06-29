@@ -2,7 +2,7 @@ import { Box, Button, styled, Divider } from "@mui/material";
 import { Link } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { setFormData, setFormStatus } from "../redux/slice/appSlice";
-import { LOG_IN, REGISTER } from "../constant/FormSignInData";
+import { LOG_IN, REGISTER } from "../constant";
 import React from "react";
 
 function MenuAccount() {

@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { LOG_IN } from "../../constant/FormSignInData";
+import { LOG_IN } from "../../constant";
 
 const initialState = {
   nav: [

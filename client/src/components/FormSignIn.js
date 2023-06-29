@@ -13,7 +13,7 @@ import {
   DialogTitle,
 } from "@mui/material";
 import { setFormStatus } from "../redux/slice/appSlice";
-import { LOG_IN, REGISTER } from "../constant/FormSignInData";
+import { LOG_IN, REGISTER } from "../constant/index";
 
 function FormSignIn() {
   const formDataDF = {

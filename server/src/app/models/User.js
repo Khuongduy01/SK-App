@@ -4,7 +4,7 @@ const Schema = mongoose.Schema;
 
 const User = new Schema(
   {
-    id: {
+    userId: {
       type: String,
       require,
     },
@@ -36,7 +36,7 @@ const User = new Schema(
     prefer: [{ idProduct: String }],
     order: [
       {
-        code: String,
+        id: String,
         quantity: Number,
       },
     ],

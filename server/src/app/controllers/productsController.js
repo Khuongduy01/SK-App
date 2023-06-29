@@ -1,4 +1,5 @@
 const productModel = require("../models/Product.js");
+const { faker } = require("@faker-js/faker");
 
 class productsController {
   // [GET] /api/products/
@@ -6,54 +7,65 @@ class productsController {
     productModel
       .find({})
       .then((products) => {
-        res.json(products);
+        return res.status(200).json({
+          message: "Thành Công",
+          data: products,
+        });
       })
       .catch(next);
   }
 
   // [GET] /api/products/:code
   getOne(req, res, next) {
-    const code = req.params.code;
+    const productId = req.params.productId;
 
     productModel
-      .findOne({ code: code })
+      .findOne({ productId: productId })
       .then((product) => {
-        res.json({ product });
+        return res.status(200).json({
+          message: "Thành Công",
+          data: product,
+        });
       })
       .catch(next);
   }
   // [POST] /api/products/
   post(req, res, next) {
     const data = req.body;
-    const newProduct = new productModel(data);
+    const newProduct = new productModel({ ...data, productId: faker.string.uuid() });
     newProduct
       .save()
-      .then((user) => {
-        res.json(user);
+      .then((product) => {
+        return res.json({ message: "Thành Công", data: product });
       })
       .catch(next);
   }
 
-  // [POST] /api/products/:code
+  // [put] /api/products/:productId
   put(req, res, next) {
-    const user = req.body;
-    const code = req.params.code;
+    const data = req.body;
+    const productId = req.params.productId;
     productModel
-      .findOneAndUpdate({ code: code }, user)
-      .then(() => {
-        res.json({ message: true });
+      .findOneAndUpdate({ productId: productId }, data)
+      .then((product) => {
+        return res.status(200).json({
+          message: "Thành Công",
+          data: product,
+        });
       })
       .catch(next);
   }
 
-  // [POST] /api/products/:code
+  // [delete] /api/products/:productId
   delete(req, res, next) {
-    const user = req.body;
-    const code = req.params.code;
+    const productId = req.params.productId;
     productModel
-      .findOneAndDelete({ code: code }, user)
-      .then(() => {
-        res.json({ message: true });
+      .findOneAndDelete({ productId: productId })
+      .then((product) => {
+        return res.status(200).json({
+          message: "Thành Công",
+          data: product,
+        });
       })
       .catch(next);
   }

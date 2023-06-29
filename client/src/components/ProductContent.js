@@ -20,8 +20,6 @@ function ProductContent() {
   const [sizeValue, setSizeValue] = useState("40");
   const [quantityValue, setQuantityValue] = useState(1);
 
-  console.log(quantityValue);
-
   const handleChangeSize = (e) => {
     setSizeValue(e.target.value);
   };
