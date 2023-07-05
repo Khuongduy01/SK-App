@@ -58,7 +58,7 @@ function ContentFooter() {
           <Grid item xs={6} md={2}>
             <Box sx={{ pt: "25px", px: "15px", pb: "30px" }}>
               <FooterTitle>chính sách</FooterTitle>
-              <FooterLink to="/donhang">Tra cứu đơn hàng</FooterLink>
+              <FooterLink to="/cart">Tra cứu đơn hàng</FooterLink>
               <FooterText>Hotline hỗ trợ đơn hàng: 1900.2818</FooterText>
             </Box>
           </Grid>

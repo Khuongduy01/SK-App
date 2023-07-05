@@ -1,4 +1,4 @@
-import { fetchPostLogin, fetchPostRegister, fetchAllGetUsers, fetchDeleteUser } from "../api";
+import { fetchPostLogin, fetchPostRegister, fetchAllGetUsers, fetchDeleteUser, fetchUpdateUser } from "../api";
 import { AUTHENTICATION_SNEAKER_APP } from "../constant";
 
 export const getAllUsers = async () => {
@@ -14,6 +14,15 @@ export const postLogin = async (dataFrom) => {
   try {
     const { data } = await fetchPostLogin(dataFrom);
     localStorage.setItem(AUTHENTICATION_SNEAKER_APP, JSON.stringify({ token: data.token }));
+    return data;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const updateUser = async (dataFrom) => {
+  try {
+    const { data } = await fetchUpdateUser(dataFrom);
     return data;
   } catch (error) {
     console.log(error);

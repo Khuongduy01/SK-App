@@ -34,12 +34,8 @@ const User = new Schema(
       maxLength: 15,
     },
     prefer: [{ idProduct: String }],
-    order: [
-      {
-        id: String,
-        quantity: Number,
-      },
-    ],
+    order: [],
+    carts: [],
   },
   {
     timestamps: true,

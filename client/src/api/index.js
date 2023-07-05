@@ -1,8 +1,8 @@
 import axios from "axios";
-import { AUTHENTICATION_SNEAKER_APP } from "../constant";
+import { AUTHENTICATION_SNEAKER_APP, BASE_URL_SERVER } from "../constant";
 
 export const API = axios.create({
-  baseURL: "http://localhost:3001/api/",
+  baseURL: `${BASE_URL_SERVER}api/`,
   timeout: 2000,
   headers: { "X-Custom-Header": "foobar" },
 });
@@ -33,8 +33,38 @@ export const fetchGetAllProducts = () => API.get("products");
 
 export const fetchGetProduct = (productId) => API.get(`products/${productId}`);
 
-export const fetchNewProduct = (formData) => API.post(`products`, formData);
+export const fetchNewProduct = (formData) => {
+  const fd = new FormData();
 
-export const fetchUpdateProduct = (productId, formData) => API.put(`products/${productId}`);
+  for (const key in formData) {
+    const data = formData[key];
+
+    switch (key) {
+      case "image":
+        for (let i = 0; i < data.length; i++) {
+          fd.append("image", data[i]);
+        }
+        break;
+
+      case "size":
+        for (let i = 0; i < data.length; i++) {
+          fd.append("size", data[i]);
+        }
+        break;
+
+      default:
+        fd.append(key, data);
+        break;
+    }
+  }
+
+  return API.post("products", fd, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+};
+
+export const fetchUpdateProduct = (productId, formData) => {
+  return API.put(`products/${productId}`, formData);
+};
 
 export const fetchDeleteProduct = (productId) => API.delete(`products/${productId}`);

@@ -6,11 +6,16 @@ const port = 3001;
 const route = require("./routes/index");
 var cookieParser = require("cookie-parser");
 const cors = require("cors");
+var methodOverride = require("method-override");
 
 db.connect();
 
+app.use(methodOverride("_method"));
+
 app.use(express.static(path.join(__dirname, "public")));
-app.use(cookieParser());
+
+app.use(cookieParser({ keepExtensions: true, uploadDir: "uploads" }));
+
 app.use(cors());
 
 app.use(
@@ -18,10 +23,6 @@ app.use(
     extended: true,
   })
 );
-
-app.use((err, req, res, next) => {
-  res.status(500).send("Có Lỗi Xảy Ra");
-});
 
 app.use(express.json());
 

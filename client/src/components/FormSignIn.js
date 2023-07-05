@@ -1,6 +1,6 @@
-import { useState, useRef } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import SimpleReactValidator from "simple-react-validator";
+
 import {
   Dialog,
   TextField,
@@ -13,30 +13,94 @@ import {
   DialogTitle,
 } from "@mui/material";
 import { setFormStatus } from "../redux/slice/appSlice";
-import { LOG_IN, REGISTER } from "../constant/index";
+import { REGISTER, LOG_IN } from "../constant/index";
+import { loginUser } from "../redux/slice/userSlice";
+import { postLogin, postRegister } from "../util/user";
+import { useSnackbar } from "notistack";
 
 function FormSignIn() {
   const formDataDF = {
-    username: "",
-    email: "",
+    userName: "",
+    gmail: "",
     password: "",
     retypePassword: "",
   };
-  const [, forceUpdate] = useState();
-  const dataForm = useSelector((state) => state.app.form);
+
+  const validationDF = {
+    toggle: false,
+    message: {
+      userName: "",
+      gmail: "",
+      password: "",
+      retypePassword: "",
+    },
+  };
+  const dialogForm = useSelector((state) => state.app.form);
   const dispatch = useDispatch();
-  const validator = useRef(
-    new SimpleReactValidator({
-      messages: {
-        required: "Trường này là bắt buộc",
-        email: "Email sai",
-        min: "tối thiểu 6 kí tự",
-        max: "tối đa 12 kí tự",
-      },
-      autoForceUpdate: { forceUpdate: forceUpdate },
-    })
-  );
   const [formData, setFormData] = useState(formDataDF);
+  const { enqueueSnackbar } = useSnackbar();
+
+  const [validation, setValidation] = useState(validationDF);
+
+  const checkValidation = useCallback(
+    (formData) => {
+      const data = { ...formData };
+      const err = {
+        toggle: validation.toggle,
+        message: {
+          userName: "",
+          gmail: "",
+          password: "",
+          retypePassword: "",
+        },
+      };
+
+      if (!data.userName) {
+        return (err.message.userName = "Bạn chưa nhập tên đăng nhập");
+      } else if (data.userName.length < 6) {
+        err.message.userName = "Tên đăng nhập lớn hơn 6 kí tự";
+      } else if (data.userName.length > 18) {
+        err.message.userName = "Tên đăng nhập nhỏ hơn 18 kí tự";
+      } else {
+        err.message.userName = "";
+      }
+
+      const gmailCheck =
+        /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i; // eslint-disable-line
+
+      if (!data.gmail) {
+        err.message.gmail = "Bạn chưa nhập gmail";
+      } else if (!gmailCheck.test(data.gmail)) {
+        err.message.gmail = "Gmail Không Hợp Lệ";
+      } else {
+        err.message.gmail = "";
+      }
+
+      if (!data.password) {
+        err.message.password = "Bạn chưa nhập mật khẩu";
+      } else if (data.password.length < 6) {
+        err.message.password = "Mật khẩu lớn hơn 6 kí tự";
+      } else if (data.password.length > 18) {
+        err.message.password = "Mật khẩu nhỏ hơn 18 kí tự";
+      } else {
+        err.message.password = "";
+      }
+
+      if (!data.retypePassword) {
+        err.message.retypePassword = "Bạn chưa nhập lại mật khẩu";
+      } else if (data.retypePassword !== data.password) {
+        err.message.retypePassword = "Mật khẩu nhập lại không trùng khớp";
+      } else {
+        err.message.retypePassword = "";
+      }
+      setValidation(err);
+    },
+    [validation.toggle]
+  );
+
+  useEffect(() => {
+    checkValidation(formData);
+  }, [checkValidation, formData]);
 
   const handleChangeInput = (e) => {
     setFormData({
@@ -48,26 +112,47 @@ function FormSignIn() {
   const handleClose = () => {
     dispatch(setFormStatus(false));
     setFormData(formDataDF);
-    validator.current.hideMessages();
+    setValidation(validationDF);
   };
 
-  const handleLogIn = () => {
-    const emailValid = validator.current.fieldValid("email");
-    const password = validator.current.fieldValid("password");
-    validator.current.showMessages();
-
-    if (emailValid & password) {
-      console.log("HandleLogin");
-      handleClose();
-    }
-  };
-
-  const handleRegister = () => {
-    const formValid = validator.current.allValid();
-    validator.current.showMessages();
-    if (formValid) {
-      console.log("handleRegister");
-      handleClose();
+  const handleSubmit = () => {
+    setValidation({ ...validation, toggle: true });
+    if (dialogForm.data === LOG_IN) {
+      if (!validation.message.userName && !validation.message.password) {
+        postLogin({
+          userName: formData.userName,
+          password: formData.password,
+        }).then((res) => {
+          if (res?.data) {
+            dispatch(loginUser(res.data));
+            handleClose();
+            enqueueSnackbar("Đăng nhập thành công", { variant: "success" });
+          } else {
+            enqueueSnackbar("Đăng nhập thất bại", { variant: "error" });
+          }
+        });
+      }
+    } else {
+      if (
+        !validation.message.userName &&
+        !validation.message.password &&
+        !validation.message.gmail &&
+        !validation.message.retypePassword
+      ) {
+        postRegister({
+          userName: formData.userName,
+          password: formData.password,
+          gmail: formData.gmail,
+        }).then((res) => {
+          if (res?.data) {
+            dispatch(loginUser(res.data));
+            handleClose();
+            enqueueSnackbar("Đăng kí thành công", { variant: "success" });
+          } else {
+            enqueueSnackbar("Đăng kí thất bại", { variant: "error" });
+          }
+        });
+      }
     }
   };
 
@@ -102,111 +187,71 @@ function FormSignIn() {
     "&:hover": { color: "#fff", backgroundColor: "#000" },
   });
 
-  return (
-    <Dialog
-      open={dataForm.status}
-      onClose={handleClose}
-      sx={{
-        "& .MuiPaper-root": {
-          width: {
-            xs: "90%",
-            sm: "466px",
+  if (formData)
+    return (
+      <Dialog
+        open={dialogForm.status}
+        onClose={handleClose}
+        sx={{
+          "& .MuiPaper-root": {
+            width: {
+              xs: "90%",
+              sm: "466px",
+            },
           },
-        },
-      }}
-    >
-      <Box sx={{ padding: "30px" }} component={"form"}>
-        {dataForm.data === LOG_IN && (
-          <>
-            <DialogTitle>
-              <TitleForm>Đăng Nhập</TitleForm>
-            </DialogTitle>
-            <DialogContent>
+        }}
+      >
+        <Box sx={{ padding: "30px" }} component={"form"}>
+          <DialogTitle>
+            <TitleForm>{dialogForm.data === REGISTER ? " Đăng kí" : "Đăng Nhập"}</TitleForm>
+          </DialogTitle>
+          <DialogContent>
+            <Box sx={{ mb: "1rem" }}>
+              <LabelForm>Tên Tài Khoản *</LabelForm>
+              <TextField
+                type="text"
+                fullWidth
+                value={formData.username}
+                name="userName"
+                onChange={(e) => {
+                  handleChangeInput(e);
+                }}
+              />
+              <ErrorForm>{validation.toggle && validation.message.userName}</ErrorForm>
+            </Box>
+
+            {dialogForm.data === REGISTER && (
               <Box sx={{ mb: "1rem" }}>
                 <LabelForm>Địa chỉ Email *</LabelForm>
                 <TextField
                   type="email"
                   fullWidth
-                  value={formData.email}
-                  name="email"
+                  value={formData.gmail}
+                  name="gmail"
                   onChange={(e) => {
                     handleChangeInput(e);
                   }}
                 />
-                <ErrorForm>{validator.current.message("email", formData.email, "required|email")}</ErrorForm>
+                <ErrorForm>{validation.toggle && validation.message.gmail}</ErrorForm>
               </Box>
-              <Box sx={{ mb: "1rem" }}>
-                <LabelForm>Mật Khẩu *</LabelForm>
-                <TextField
-                  type="password"
-                  fullWidth
-                  autoComplete="on"
-                  value={formData.password}
-                  name="password"
-                  onChange={(e) => {
-                    handleChangeInput(e);
-                  }}
-                />
-                <ErrorForm>
-                  {validator.current.message("password", formData.password, "required|min:6|max:12")}
-                </ErrorForm>
-              </Box>
-            </DialogContent>
-            <DialogActions>
-              <BtnSubmitFrom onClick={handleLogIn}>Đăng Nhập</BtnSubmitFrom>
-            </DialogActions>
-          </>
-        )}
-        {dataForm.data === REGISTER && (
-          <>
-            <DialogTitle>
-              <TitleForm>Đăng kí</TitleForm>
-            </DialogTitle>
-            <DialogContent>
-              <Box sx={{ mb: "1rem" }}>
-                <LabelForm>Họ Tên *</LabelForm>
-                <TextField
-                  type="text"
-                  fullWidth
-                  value={formData.username}
-                  name="username"
-                  onChange={(e) => {
-                    handleChangeInput(e);
-                  }}
-                />
-                <ErrorForm>
-                  {validator.current.message("username", formData.username, "required|min:6|max:12")}
-                </ErrorForm>
-              </Box>
-              <Box sx={{ mb: "1rem" }}>
-                <LabelForm>Địa chỉ Email *</LabelForm>
-                <TextField
-                  type="email"
-                  fullWidth
-                  value={formData.email}
-                  name="email"
-                  onChange={(e) => {
-                    handleChangeInput(e);
-                  }}
-                />
-                <ErrorForm>{validator.current.message("email", formData.email, "required|email")}</ErrorForm>
-              </Box>
-              <Box sx={{ mb: "1rem" }}>
-                <LabelForm>Mật Khẩu *</LabelForm>
-                <TextField
-                  type="password"
-                  fullWidth
-                  autoComplete="on"
-                  value={formData.password}
-                  name="password"
-                  onChange={(e) => {
-                    handleChangeInput(e);
-                  }}
-                />
-                <ErrorForm>
-                  {validator.current.message("password", formData.password, "required|min:6|max:12")}
-                </ErrorForm>
-              </Box>
+            )}
+
+            <Box sx={{ mb: "1rem" }}>
+              <LabelForm>Mật Khẩu *</LabelForm>
+              <TextField
+                type="password"
+                fullWidth
+                autoComplete="on"
+                value={formData.password}
+                name="password"
+                onChange={(e) => {
+                  handleChangeInput(e);
+                }}
+              />
+              <ErrorForm>{validation.toggle && validation.message.password}</ErrorForm>
+            </Box>
+
+            {dialogForm.data === REGISTER && (
               <Box sx={{ mb: "1rem" }}>
                 <LabelForm>Nhập lại mật khẩu *</LabelForm>
                 <TextField
@@ -219,20 +264,18 @@ function FormSignIn() {
                     handleChangeInput(e);
                   }}
                 />
-                <ErrorForm>
-                  {validator.current.message("retypePassword", formData.retypePassword, "required|min:6|max:12")}
-                </ErrorForm>
+                <ErrorForm>{validation.toggle && validation.message.retypePassword}</ErrorForm>
               </Box>
-            </DialogContent>
-            <DialogActions></DialogActions>
-            <DialogActions>
-              <BtnSubmitFrom onClick={handleRegister}>Đăng kí</BtnSubmitFrom>
-            </DialogActions>
-          </>
-        )}
-      </Box>
-    </Dialog>
-  );
+            )}
+          </DialogContent>
+          <DialogActions>
+            <BtnSubmitFrom onClick={handleSubmit}>
+              {dialogForm.data === REGISTER ? " Đăng kí" : "Đăng Nhập"}
+            </BtnSubmitFrom>
+          </DialogActions>
+        </Box>
+      </Dialog>
+    );
 }
 
 export default FormSignIn;

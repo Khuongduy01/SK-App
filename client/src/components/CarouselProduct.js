@@ -3,6 +3,7 @@ import { useState } from "react";
 import Slider from "react-slick";
 import Sale from "./Sale";
 import { NavigateNext, NavigateBefore } from "@mui/icons-material";
+import { BASE_URL_SERVER } from "../constant";
 
 function PrevArrowCustom({ onClick }) {
   return (
@@ -44,7 +45,7 @@ function NextArrowCustom({ onClick }) {
   );
 }
 
-function CarouselProduct() {
+function CarouselProduct({ data }) {
   const [activeItem, setActiveItem] = useState(0);
   const settings = {
     dots: true,
@@ -87,7 +88,7 @@ function CarouselProduct() {
         >
           <Box
             component={"img"}
-            src="/imgs/Pj1.png"
+            src={`${BASE_URL_SERVER}${data.image[index]}`}
             alt="123"
             sx={
               index === activeItem
@@ -95,11 +96,11 @@ function CarouselProduct() {
                     display: "block",
                     width: "100%",
                     height: "100%",
-                    objectFit: "container",
+                    objectFit: "cover",
                     scale: "1.2",
                     transition: "all 1s ease-in-out",
                   }
-                : { display: "block", width: "100%", objectFit: "container" }
+                : { display: "block", width: "100%", objectFit: "cover" }
             }
           />
         </Box>
@@ -116,30 +117,23 @@ function CarouselProduct() {
       }}
     >
       <Slider {...settings}>
-        <Box sx={{ position: "relative" }}>
-          <Sale></Sale>
-          <Box
-            component={"img"}
-            src="/imgs/Pj1.png"
-            sx={{
-              width: "100%",
-              aspectRatio: "1/1",
-            }}
-            alt="123"
-          />
-        </Box>
-        <Box sx={{ position: "relative" }}>
-          <Sale></Sale>
-          <Box
-            component={"img"}
-            src="/imgs/Pj1.png"
-            sx={{
-              width: "100%",
-              aspectRatio: "1/1",
-            }}
-            alt="123"
-          />
-        </Box>
+        {data.image &&
+          data.image.map((image, index) => {
+            return (
+              <Box sx={{ position: "relative" }} key={index}>
+                <Sale data={data.sale}></Sale>
+                <Box
+                  component={"img"}
+                  src={`${BASE_URL_SERVER}${image}`}
+                  sx={{
+                    width: "100%",
+                    aspectRatio: "1/1",
+                  }}
+                  alt="123"
+                />
+              </Box>
+            );
+          })}
       </Slider>
     </Box>
   );

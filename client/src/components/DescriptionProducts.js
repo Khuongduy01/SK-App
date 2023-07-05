@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Collapse, Button, Stack, Typography, styled } from "@mui/material";
 import { KeyboardArrowDown, KeyboardArrowUp } from "@mui/icons-material";
 
-function DescriptionProducts() {
+function DescriptionProducts({ data }) {
   const [open, setOpen] = useState(false);
 
   const CollapseText = styled(Typography)({
@@ -35,9 +35,7 @@ function DescriptionProducts() {
       </Button>
       <Collapse in={open}>
         <Stack sx={{ px: "34px", py: "16px" }}>
-          <CollapseText>Hàng chính hãng 100%</CollapseText>
-          <CollapseText>Hàng chính hãng 10%</CollapseText>
-          <CollapseText>Hàng chính hãng 1%</CollapseText>
+          <CollapseText>{data.description}</CollapseText>
         </Stack>
       </Collapse>
     </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   TableContainer,
   Typography,
@@ -11,9 +11,10 @@ import {
   Select,
   MenuItem,
   Chip,
+  FormHelperText,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
-import { getAllProducts } from "../util/products";
+import { getAllProducts, newProduct, updateProduct, deleteProduct } from "../util/products";
 import {
   UPDATE_PRODUCT,
   NEW_PRODUCT,
@@ -22,9 +23,12 @@ import {
   PRODUCT_BRAND_SHOE,
   PRODUCT_CATEGORY,
 } from "../constant";
+import { useSnackbar } from "notistack";
+import PopoverBase from "./PopoverBase";
 
 const dfProductData = {
   productId: "",
+  price: 0,
   name: "",
   quantity: 0,
   sale: 0,
@@ -36,14 +40,126 @@ const dfProductData = {
   image: [],
 };
 
+const columns = [
+  { field: "productId", headerName: "ID Sản Phẩm", minWidth: 150 },
+  { field: "name", headerName: "Tên Sản Phẩm", minWidth: 150 },
+  { field: "price", headerName: "Giá", minWidth: 150 },
+  { field: "quantity", headerName: "Số Lượng", minWidth: 150 },
+  {
+    field: "sale",
+    headerName: "Giảm Giá %",
+    minWidth: 150,
+  },
+  {
+    field: "description",
+    headerName: "Mô Tả",
+    minWidth: 150,
+  },
+  {
+    field: "size",
+    headerName: "Kích Cỡ",
+    minWidth: 150,
+  },
+  {
+    field: "category",
+    headerName: "Loại",
+    minWidth: 150,
+  },
+  {
+    field: "brand",
+    headerName: "Thương hiệu",
+    minWidth: 150,
+  },
+  {
+    field: "image",
+    headerName: "Hình Ảnh",
+    minWidth: 150,
+  },
+  {
+    field: "thumbnail",
+    headerName: "Thumbnail",
+    minWidth: 150,
+  },
+];
+
 function AdminProduct() {
+  const { enqueueSnackbar } = useSnackbar();
+  const [popoverAnchorEl, setPopoverAnchorEl] = useState(null);
   const [products, setProducts] = useState([]);
   const [action, setAction] = useState({
     productAction: "",
     productData: dfProductData,
   });
+  const [validation, setValidation] = useState({
+    productId: "",
+    name: "",
+    quantity: "",
+    sale: "",
+    price: "",
+    description: "",
+    brand: "",
+    category: "",
+    size: "",
+    thumbnail: "",
+    image: "",
+  });
 
-  console.log(action);
+  const checkValidation = useCallback(
+    (validation) => {
+      let data = action.productData;
+      let err = { ...validation };
+      if (data.name.length < 6) {
+        err.name = "Tên sản phẩm lớn hơn 6 kí tự";
+      } else {
+        err.name = "";
+      }
+
+      if (data.price < 10000 || data.quantity > 10000000) {
+        err.price = "Giá sản phẩm lớn hơn 10.000 nhỏ hơn 10.000.000";
+      } else {
+        err.price = "";
+      }
+      if (data.quantity < 1 || data.quantity > 1000) {
+        err.quantity = "Số lượng sản phẩm lớn hơn 1 nhỏ hơn 1000";
+      } else {
+        err.quantity = "";
+      }
+      if (data.sale < 0 || data.sale > 100) {
+        err.sale = "Số lượng sản phẩm lớn hơn hoặc bằng 0 nhỏ hơn hoặc bằng 100";
+      } else {
+        err.sale = "";
+      }
+      if (data.description.length < 10 || data.description.length > 1000) {
+        err.description = "Mô tả sản phẩm sản phẩm lớn hơn 6 kí tự và nhỏ hơn 15 kí tự";
+      } else {
+        err.description = "";
+      }
+
+      if (data.size.length < 1) {
+        err.size = "Chọn ít nhất 1 kích cỡ";
+      } else {
+        err.size = "";
+      }
+
+      if (!data.thumbnail && action.productAction === NEW_PRODUCT) {
+        err.thumbnail = "Chọn 1 hình ảnh";
+      } else {
+        err.thumbnail = "";
+      }
+
+      if (
+        (data.image.length === 2 && action.productAction === NEW_PRODUCT) ||
+        (data.image.length === 3 && action.productAction === NEW_PRODUCT)
+      ) {
+        err.image = "Chọn 2 hoặc 3 hình ảnh";
+      } else {
+        err.image = "";
+      }
+
+      return setValidation(err);
+    },
+    [action.productData, action.productAction]
+  );
 
   useEffect(() => {
     getAllProducts().then((res) => {
@@ -51,10 +167,16 @@ function AdminProduct() {
     });
   }, []);
 
+  useEffect(() => {
+    checkValidation();
+  }, [checkValidation]);
+
   const handleChangeFrom = (e) => {
     const name = e.target.name;
     const value = e.target.value;
     const files = e.target.files;
+
+    console.log(name, value);
 
     if (name === "image") {
       return setAction({ ...action, productData: { ...action.productData, [name]: files } });
@@ -71,58 +193,82 @@ function AdminProduct() {
       });
     }
 
+    if (name === "quantity" || name === "sale" || name === "price") {
+      return setAction({
+        ...action,
+        productData: { ...action.productData, [name]: parseInt(value) },
+      });
+    }
+
     if (name === "category") {
       return setAction({
         ...action,
-        productData: { ...action.productData, [name]: value, size: [] },
+        productData: { ...action.productData, [name]: value },
       });
     }
     setAction({ ...action, productData: { ...action.productData, [name]: value } });
   };
 
-  const handleSubmitForm = () => {
-    console.log(action.productData);
+  const handleSubmitForm = (e) => {
+    e.preventDefault();
+    let err = "";
+    for (const key in validation) {
+      if (validation[key]) {
+        err = validation[key];
+      }
+    }
+
+    console.log(err);
+
+    if (!err) {
+      if (action.productAction === NEW_PRODUCT) {
+        newProduct(action.productData).then((res) => {
+          if (res?.data) {
+            enqueueSnackbar(`${action.productAction} ${res?.message}`, { variant: "success" });
+            setProducts([...products, res.data]);
+            setAction({ ...action, productData: dfProductData });
+          } else {
+            enqueueSnackbar("Có Lỗi Xảy Ra", { variant: "error" });
+          }
+        });
+      } else {
+        updateProduct(action.productData.productId, action.productData).then((res) => {
+          if (res?.message) {
+            enqueueSnackbar(`${action.productAction} ${res?.message}`, { variant: "success" });
+            setAction({ ...action, productData: dfProductData });
+            setProducts(
+              products.map((obj) => {
+                if (obj.productId === action.productData.productId) {
+                  return action.productData;
+                }
+                return obj;
+              })
+            );
+          } else {
+            enqueueSnackbar("Có Lỗi Xảy Ra", { variant: "error" });
+          }
+        });
+      }
+    } else {
+      enqueueSnackbar("Lỗi From", { variant: "error" });
+    }
   };
 
-  const columns = [
-    { field: "productId", headerName: "ID", minWidth: 150 },
-    { field: "name", headerName: "name", minWidth: 150 },
-    { field: "quantity", headerName: "quantity", minWidth: 150 },
-    {
-      field: "sale",
-      headerName: "sale",
-      minWidth: 150,
-    },
-    {
-      field: "description",
-      headerName: "description",
-      minWidth: 150,
-    },
-    {
-      field: "size",
-      headerName: "size",
-      minWidth: 150,
-    },
-    {
-      field: "category",
-      headerName: "category",
-      minWidth: 150,
-    },
-    {
-      field: "image",
-      headerName: "image",
-      minWidth: 150,
-    },
-    {
-      field: "thumbnail",
-      headerName: "thumbnail",
-      minWidth: 150,
-    },
-  ];
+  const handleDeleteProduct = () => {
+    deleteProduct(action.productData.productId).then((res) => {
+      if (res?.message) {
+        setProducts(products.filter((obj) => obj.productId !== action.productData.productId));
+        enqueueSnackbar(`Delete ${res?.message}`, { variant: "success" });
+        setAction({ ...action, productData: dfProductData });
+      } else {
+        enqueueSnackbar("Có Lỗi Xảy Ra", { variant: "error" });
+      }
+    });
+  };
 
   return (
     <>
-      {products && (
+      {products ? (
         <>
           <Stack>
             <TableContainer>
@@ -174,12 +320,23 @@ function AdminProduct() {
                   mt: ".5rem",
                   "&:hover": { color: "red" },
                 }}
-                onClick={() => {
-                  console.log("delete");
+                onClick={(e) => {
+                  if (action?.productData?.productId) setPopoverAnchorEl(e.currentTarget);
                 }}
               >
                 Xóa Sản Phẩm
               </Button>
+              <PopoverBase
+                open={Boolean(popoverAnchorEl)}
+                handleClose={() => {
+                  setPopoverAnchorEl(null);
+                }}
+                anchorEl={popoverAnchorEl}
+                message={`Bạn có muốn xóa sản phẩm ID : ${action?.productData?.productId} ?`}
+                okV={"Xoá"}
+                cancelV={"Hủy"}
+                handleClickOk={() => handleDeleteProduct()}
+              ></PopoverBase>
             </Stack>
           </Stack>
 
@@ -193,9 +350,17 @@ function AdminProduct() {
                 <b>ProductId:</b> {action.productData.productId}
               </Typography>
 
-              <Stack gap={2}>
+              <Stack
+                gap={2}
+                component={"form"}
+                onSubmit={(e) => {
+                  handleSubmitForm(e);
+                }}
+                encType="multipart/form-data"
+                method="post"
+              >
                 <FormControl variant="outlined">
-                  <InputLabel sx={{ textTransform: "capitalize" }}>name</InputLabel>
+                  <InputLabel sx={{ textTransform: "capitalize" }}>Tên Sản Phẩm</InputLabel>
                   <OutlinedInput
                     type="text"
                     label="name"
@@ -205,9 +370,25 @@ function AdminProduct() {
                       handleChangeFrom(e);
                     }}
                   />
+                  {validation.name && <FormHelperText>{validation.name}</FormHelperText>}
                 </FormControl>
                 <FormControl variant="outlined">
-                  <InputLabel sx={{ textTransform: "capitalize" }}>quantity</InputLabel>
+                  <InputLabel sx={{ textTransform: "capitalize" }}>Giá</InputLabel>
+                  <OutlinedInput
+                    type="number"
+                    inputProps={{ min: "10000", max: "1000000000000", step: "10000" }}
+                    label="price"
+                    name="price"
+                    value={action.productData.price}
+                    onChange={(e) => {
+                      handleChangeFrom(e);
+                    }}
+                  />
+                  {validation.price && <FormHelperText>{validation.price}</FormHelperText>}
+                </FormControl>
+
+                <FormControl variant="outlined">
+                  <InputLabel sx={{ textTransform: "capitalize" }}>Số Lượng</InputLabel>
                   <OutlinedInput
                     type="number"
                     inputProps={{ min: "0", max: "1000", step: "1" }}
@@ -218,9 +399,10 @@ function AdminProduct() {
                       handleChangeFrom(e);
                     }}
                   />
+                  {validation.quantity && <FormHelperText>{validation.quantity}</FormHelperText>}
                 </FormControl>
                 <FormControl variant="outlined">
-                  <InputLabel sx={{ textTransform: "capitalize" }}>sale</InputLabel>
+                  <InputLabel sx={{ textTransform: "capitalize" }}>Giảm Giá %</InputLabel>
                   <OutlinedInput
                     type="number"
                     label="sale"
@@ -231,9 +413,10 @@ function AdminProduct() {
                       handleChangeFrom(e);
                     }}
                   />
+                  {validation.sale && <FormHelperText>{validation.sale}</FormHelperText>}
                 </FormControl>
                 <FormControl variant="outlined">
-                  <InputLabel sx={{ textTransform: "capitalize" }}>description</InputLabel>
+                  <InputLabel sx={{ textTransform: "capitalize" }}>Mô Tả</InputLabel>
                   <OutlinedInput
                     type="text"
                     label="description"
@@ -245,10 +428,11 @@ function AdminProduct() {
                       handleChangeFrom(e);
                     }}
                   />
+                  {validation.description && <FormHelperText>{validation.description}</FormHelperText>}
                 </FormControl>
                 <FormControl variant="outlined">
                   <InputLabel id="select-category-label" sx={{ textTransform: "capitalize" }}>
-                    category
+                    Loại
                   </InputLabel>
                   <Select
                     labelId="select-category-label"
@@ -268,9 +452,10 @@ function AdminProduct() {
                       );
                     })}
                   </Select>
+                  {validation.category && <FormHelperText>{validation.category}</FormHelperText>}
                 </FormControl>
                 <FormControl variant="outlined">
-                  <InputLabel sx={{ textTransform: "capitalize" }}>brand</InputLabel>
+                  <InputLabel sx={{ textTransform: "capitalize" }}>Thương Hiệu</InputLabel>
                   <Select
                     value={action.productData.brand}
                     name="brand"
@@ -293,9 +478,10 @@ function AdminProduct() {
                       <MenuItem value="">Chọn Loại Sản Phẩm Trước</MenuItem>
                     )}
                   </Select>
+                  {validation.brand && <FormHelperText>{validation.brand}</FormHelperText>}
                 </FormControl>
                 <FormControl>
-                  <InputLabel>size</InputLabel>
+                  <InputLabel>Kích Cỡ</InputLabel>
                   <Select
                     multiple
                     value={action.productData.size}
@@ -324,7 +510,8 @@ function AdminProduct() {
                   >
                     {action.productData.category === "Dép" ||
                     action.productData.category === "Giày" ||
-                    action.productData.category === "Tất" ? (
+                    action.productData.category === "Tất" ||
+                    action.productData.category === "Mũ" ? (
                       PRODUCT_SIZE_SHOE.map((value, index) => {
                         return (
                           <MenuItem value={value} key={index}>
@@ -347,78 +534,94 @@ function AdminProduct() {
                       <MenuItem value="">Chọn Loại Sản Phẩm Trước</MenuItem>
                     )}
                   </Select>
+                  {validation.size && <FormHelperText>{validation.size}</FormHelperText>}
                 </FormControl>
 
-                <Stack
-                  direction={"row"}
-                  alignItems={"center"}
-                  sx={{
-                    color: "rgb(0 0 0 / 62%)",
-                    borderRadius: "4px",
-                    border: "1px solid rgb(0 0 0 / 23%)",
-                    height: "56px",
-                    padding: "16px",
-                  }}
-                >
-                  <Typography component={"label"} htmlFor="image" sx={{ marginRight: "10px" }}>
-                    Image:
-                    {![...action.productData.image].length
-                      ? "Nhấp Chuột Để Upload File"
-                      : `Số File Đã Chọn ${[...action.productData.image].length}`}
-                  </Typography>
-                  <input
-                    name="image"
-                    type="file"
-                    id="image"
-                    multiple
-                    style={{ display: "none" }}
-                    onChange={(e) => {
-                      handleChangeFrom(e);
-                    }}
-                  />
-                  <div>
-                    {action.productData.image &&
-                      [...action.productData.image].map((value, index) => {
-                        return <span style={{ margin: "0 10px" }} key={index}>{`${value.name} - ${value.type}`}</span>;
-                      })}
-                  </div>
-                </Stack>
+                {action.productAction === NEW_PRODUCT ? (
+                  <>
+                    <Box>
+                      <Stack
+                        direction={"row"}
+                        alignItems={"center"}
+                        sx={{
+                          color: "rgb(0 0 0 / 62%)",
+                          borderRadius: "4px",
+                          border: "1px solid rgb(0 0 0 / 23%)",
+                          height: "56px",
+                          padding: "16px",
+                        }}
+                      >
+                        <Typography component={"label"} htmlFor="image" sx={{ marginRight: "10px" }}>
+                          Hình Ảnh:
+                          {![...action.productData.image].length
+                            ? "Nhấp Chuột Để Upload File"
+                            : `Số File Đã Chọn ${[...action.productData.image].length}`}
+                        </Typography>
+                        <input
+                          name="image"
+                          type="file"
+                          id="image"
+                          multiple
+                          style={{ display: "none" }}
+                          onChange={(e) => {
+                            handleChangeFrom(e);
+                          }}
+                        />
+                        <div>
+                          {action.productData.image &&
+                            [...action.productData.image].map((value, index) => {
+                              return (
+                                <span style={{ margin: "0 10px" }} key={index}>{`${value.name} - ${value.type}`}</span>
+                              );
+                            })}
+                        </div>
+                        {validation.image && <FormHelperText>{validation.image}</FormHelperText>}{" "}
+                      </Stack>
+                    </Box>
+                    <Box>
+                      <Stack
+                        direction={"row"}
+                        alignItems={"center"}
+                        sx={{
+                          color: "rgb(0 0 0 / 62%)",
+                          borderRadius: "4px",
+                          border: "1px solid rgb(0 0 0 / 23%)",
+                          height: "56px",
+                          padding: "16px",
+                        }}
+                      >
+                        <Typography component={"label"} htmlFor="thumbnail" sx={{ marginRight: "10px" }}>
+                          Thumbnail:
+                          {!action.productData.thumbnail ? "Nhấp Chuột Để Upload File" : `File Đã Chọn  `}
+                        </Typography>
+                        <input
+                          name="thumbnail"
+                          type="file"
+                          id="thumbnail"
+                          style={{ display: "none" }}
+                          onChange={(e) => {
+                            handleChangeFrom(e);
+                          }}
+                        />
+                        <div>
+                          {action.productData.thumbnail ? (
+                            `${action.productData.thumbnail.name} - ${action.productData.thumbnail.type}`
+                          ) : (
+                            <></>
+                          )}
+                        </div>
+                        {validation.thumbnail && <FormHelperText>{validation.thumbnail}</FormHelperText>}
+                      </Stack>
+                    </Box>
+                  </>
+                ) : (
+                  <></>
+                )}
 
-                <Stack
-                  direction={"row"}
-                  alignItems={"center"}
-                  sx={{
-                    color: "rgb(0 0 0 / 62%)",
-                    borderRadius: "4px",
-                    border: "1px solid rgb(0 0 0 / 23%)",
-                    height: "56px",
-                    padding: "16px",
-                  }}
-                >
-                  <Typography component={"label"} htmlFor="thumbnail" sx={{ marginRight: "10px" }}>
-                    Thumbnail:
-                    {!action.productData.thumbnail ? "Nhấp Chuột Để Upload File" : `File Đã Chọn  `}
-                  </Typography>
-                  <input
-                    name="thumbnail"
-                    type="file"
-                    id="thumbnail"
-                    style={{ display: "none" }}
-                    onChange={(e) => {
-                      handleChangeFrom(e);
-                    }}
-                  />
-                  <div>
-                    {action.productData.thumbnail ? (
-                      `${action.productData.thumbnail.name} - ${action.productData.thumbnail.type}`
-                    ) : (
-                      <></>
-                    )}
-                  </div>
-                </Stack>
-
-                <Button
-                  sx={{
+                <button
+                  type="submit"
+                  style={{
+                    cursor: "pointer",
                     height: "40px",
                     color: "#000",
                     width: "fit-content",
@@ -427,17 +630,19 @@ function AdminProduct() {
                     fontWeight: "700",
                     mt: ".5rem",
                     "&:hover": { color: "#000" },
+                    value: "Thêm Mới",
                   }}
-                  onClick={handleSubmitForm}
                 >
-                  Thêm Mới
-                </Button>
+                  {action.productAction === UPDATE_PRODUCT ? "Cập nhật sản phẩm" : "Thêm Sản Phẩm"}
+                </button>
               </Stack>
             </Box>
           ) : (
             <></>
           )}
         </>
+      ) : (
+        <></>
       )}
     </>
   );

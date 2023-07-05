@@ -3,6 +3,7 @@ import React from "react";
 import Slider from "react-slick";
 import ListProductItem from "./ListProductItem";
 import { NavigateNext, NavigateBefore } from "@mui/icons-material";
+import { useSelector } from "react-redux";
 
 function PrevArrowCustom({ onClick }) {
   return (
@@ -49,6 +50,7 @@ function NextArrowCustom({ onClick }) {
 }
 
 function MoreProducts() {
+  const productsData = useSelector((state) => state.products.data);
   const settings = {
     infinite: true,
     speed: 500,
@@ -95,9 +97,10 @@ function MoreProducts() {
         Sản Phẩm Tương Tự
       </Typography>
       <Slider {...settings}>
-        {[...Array(10)].map((_, index) => {
-          return <ListProductItem key={index} d={index + 1}></ListProductItem>;
-        })}
+        {productsData &&
+          productsData.map((product, index) => {
+            return <ListProductItem key={index} data={product}></ListProductItem>;
+          })}
       </Slider>
     </Box>
   );

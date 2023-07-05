@@ -32,6 +32,17 @@ class productsController {
   // [POST] /api/products/
   post(req, res, next) {
     const data = req.body;
+    if (req.files.thumbnail[0]) {
+      let thumnailValue = `images/${req.files.thumbnail[0].filename}`;
+      data.thumbnail = thumnailValue;
+    }
+    if (req.files.image) {
+      let imageValue = [];
+      req.files.image.forEach((element) => {
+        imageValue.push(`images/${element.filename}`);
+      });
+      data.image = imageValue;
+    }
     const newProduct = new productModel({ ...data, productId: faker.string.uuid() });
     newProduct
       .save()
@@ -48,10 +59,13 @@ class productsController {
     productModel
       .findOneAndUpdate({ productId: productId }, data)
       .then((product) => {
-        return res.status(200).json({
-          message: "Thành Công",
-          data: product,
-        });
+        if (product) {
+          return res.status(200).json({
+            message: "Thành Công",
+          });
+        } else {
+          next();
+        }
       })
       .catch(next);
   }

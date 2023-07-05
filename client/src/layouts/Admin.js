@@ -2,18 +2,10 @@ import React from "react";
 import { Container, Box, Typography, Button } from "@mui/material";
 import { Outlet } from "react-router-dom";
 import { Link } from "react-router-dom";
-import { postLogin } from "../util/user";
-import { useEffect } from "react";
+import { useSelector } from "react-redux";
 
 function Admin() {
-  useEffect(() => {
-    postLogin({
-      userName: "admin",
-      password: "admin",
-    }).then((res) => {
-      console.log(res.token);
-    });
-  }, []);
+  const user = useSelector((state) => state.user);
   return (
     <Container maxWidth="ct">
       <Box pt="20px">
@@ -29,41 +21,40 @@ function Admin() {
           ADMIN
         </Typography>
 
-        <Button
-          component={Link}
-          to="/admin/user"
-          sx={{
-            height: "40px",
-            color: "#000",
+        {user.data.permission === "admin" ? (
+          <>
+            <Button
+              component={Link}
+              to="/admin/user"
+              sx={{
+                height: "40px",
+                color: "#000",
 
-            borderRadius: "0",
-            fontWeight: "700",
-            mt: ".5rem",
-            "&:hover": { color: "#000" },
-          }}
-        >
-          User
-        </Button>
+                borderRadius: "0",
+                fontWeight: "700",
+                mt: ".5rem",
+                "&:hover": { color: "#000" },
+              }}
+            >
+              User
+            </Button>
+            <Button
+              component={Link}
+              to="/admin/product"
+              sx={{
+                height: "40px",
+                color: "#000",
 
-        <Button
-          component={Link}
-          to="/admin/product"
-          sx={{
-            height: "40px",
-            color: "#000",
-
-            borderRadius: "0",
-            fontWeight: "700",
-            mt: ".5rem",
-            "&:hover": { color: "#000" },
-          }}
-        >
-          Product
-        </Button>
-
-        <Outlet />
-        {true ? (
-          <></>
+                borderRadius: "0",
+                fontWeight: "700",
+                mt: ".5rem",
+                "&:hover": { color: "#000" },
+              }}
+            >
+              Product
+            </Button>
+            <Outlet />
+          </>
         ) : (
           <>
             <Typography>Bạn ko có Quyền Admin</Typography>

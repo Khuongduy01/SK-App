@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import MenuMobile from "./MenuMobile";
 import SearchMobile from "./SearchMobile";
 import { Link } from "react-router-dom";
@@ -6,17 +6,27 @@ import { Toolbar, Box, Typography, IconButton, Badge, Stack, Divider } from "@mu
 import { PersonOutlined, ShoppingBagOutlined, MenuOutlined, SearchOutlined, RoomSharp } from "@mui/icons-material";
 import MenuCart from "./MenuCart";
 import MenuAccount from "./MenuAccount";
+import { useSelector } from "react-redux";
 
 function TopHeader() {
   const [toggleMenu, setToggleMenu] = useState(false);
   const [searchMenuEl, setSearchMenuEl] = useState(null);
   const openSearchMenu = Boolean(searchMenuEl);
+  const carts = useSelector((state) => state.user.data.carts);
   const handleOpenSearchMenu = (e) => {
     setSearchMenuEl(e.currentTarget);
   };
   const handleCloseSearchMenu = () => {
     setSearchMenuEl(null);
   };
+
+  const totalCartsQuatity = useMemo(() => {
+    return carts
+      ? carts.reduce((acc, cart) => {
+          return (acc += cart.cartQuatity);
+        }, 0)
+      : 0;
+  }, [carts]);
 
   return (
     <Toolbar sx={{ mx: 2, justifyContent: "space-between", height: "76px" }} disableGutters>
@@ -184,7 +194,7 @@ function TopHeader() {
             }}
           >
             <Badge
-              badgeContent={4}
+              badgeContent={totalCartsQuatity ? totalCartsQuatity : 0}
               sx={{
                 "& .MuiBadge-badge": {
                   color: "#fff",
@@ -196,7 +206,7 @@ function TopHeader() {
             </Badge>
           </IconButton>
 
-          <MenuCart></MenuCart>
+          <MenuCart carts={carts}></MenuCart>
         </Box>
       </Stack>
     </Toolbar>

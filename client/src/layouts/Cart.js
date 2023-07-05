@@ -1,10 +1,19 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Container, Box, Typography, Stack, Button } from "@mui/material";
 import { Link } from "react-router-dom";
 import { Reply, ArrowBack } from "@mui/icons-material";
 import CardTable from "../components/CartTable";
+import { useSelector } from "react-redux";
+import numberWithCommas from "../util/numberWithCommas";
 
 function Cart() {
+  const carts = useSelector((state) => state.user.data.carts);
+
+  const totalCartsPrice = useMemo(() => {
+    return carts.reduce((acc, cart) => {
+      return (acc += parseInt(cart.priceDrop) * parseInt(cart.cartQuatity));
+    }, 0);
+  }, [carts]);
   return (
     <Container maxWidth="ct">
       <Box p="16px 16px 24px 16px">
@@ -20,11 +29,11 @@ function Cart() {
           Giỏ Hàng
         </Typography>
 
-        {true ? (
+        {carts.length >= 1 ? (
           <>
-            <CardTable></CardTable>
+            <CardTable carts={carts}></CardTable>
             <Typography sx={{ color: "#777", my: "1.5rem", textAlign: "end" }}>
-              Tổng tiền : <b style={{ color: "#202020" }}>5.490.000đ</b>
+              Tổng tiền : <b style={{ color: "#202020" }}>{numberWithCommas(totalCartsPrice)}đ</b>
             </Typography>
             <Stack direction={"row"} gap={"1.25rem"} justifyContent={"end"}>
               <Button

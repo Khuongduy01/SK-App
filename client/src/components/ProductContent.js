@@ -14,11 +14,18 @@ import {
   styled,
 } from "@mui/material";
 import { YouTube, Facebook, Twitter, Instagram, Pinterest } from "@mui/icons-material";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import numberWithCommas from "../util/numberWithCommas";
+import { pushCartItem } from "../redux/slice/userSlice";
+import { useSnackbar } from "notistack";
 
-function ProductContent() {
-  const [sizeValue, setSizeValue] = useState("40");
+function ProductContent({ data }) {
+  const [sizeValue, setSizeValue] = useState(data.size[0]);
   const [quantityValue, setQuantityValue] = useState(1);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { enqueueSnackbar } = useSnackbar();
 
   const handleChangeSize = (e) => {
     setSizeValue(e.target.value);
@@ -49,19 +56,41 @@ function ProductContent() {
   }));
 
   const handleQuantityValue = (e, fil) => {
-    var value = parseFloat(e.target.value);
+    var value = parseInt(e.target.value);
     switch (fil) {
       case "prev":
-        setQuantityValue(quantityValue - 1);
+        setQuantityValue(quantityValue > 1 ? quantityValue - 1 : 1);
         break;
       case "change":
-        setQuantityValue(value || 1);
+        setQuantityValue(!isNaN(value) ? value : "");
         break;
       case "plus":
-        setQuantityValue(quantityValue + 1);
+        setQuantityValue(quantityValue < data.quantity ? quantityValue + 1 : data.quantity);
         break;
       default:
         break;
+    }
+
+    if (quantityValue > data.quantity) {
+      setQuantityValue(data.quantity);
+    }
+  };
+
+  const handlePushCard = () => {
+    if (typeof quantityValue === "number" && quantityValue <= data.quantity && quantityValue > 0) {
+      dispatch(
+        pushCartItem({
+          ...data,
+          cartQuatity: quantityValue,
+          cartSize: sizeValue,
+          priceDrop: data.price - (data.price * data.sale) / 100,
+        })
+      );
+      setSizeValue(data.size[0]);
+      setQuantityValue(1);
+      enqueueSnackbar("Thêm Sản Phẩm Thành Công", { variant: "success" });
+    } else {
+      enqueueSnackbar("Thêm Sản Phẩm Thất bại", { variant: "error" });
     }
   };
 
@@ -72,7 +101,7 @@ function ProductContent() {
         color="initial"
         sx={{ color: "#555", fontSize: "1.7rem", marginBottom: ".5rem", fontWeight: "700" }}
       >
-        Tất HAPPY SOCKS Zebra
+        {data.name}
       </Typography>
       <Stack direction={"row"} sx={{ m: ".5rem", gap: "8px" }}>
         <Typography
@@ -80,11 +109,11 @@ function ProductContent() {
           color="initial"
           sx={{ color: "#111", fontSize: "1.5rem", opacity: "0.6", textDecoration: "line-through" }}
         >
-          450.000
+          {numberWithCommas(data.price)}
           <sup>đ</sup>
         </Typography>
         <Typography variant="body1" color="initial" sx={{ color: "#ff2419", fontSize: "1.5rem", fontWeight: "700" }}>
-          450.000
+          {numberWithCommas(data.price - (data.price * data.sale) / 100)}
           <sup>đ</sup>
         </Typography>
       </Stack>
@@ -101,41 +130,31 @@ function ProductContent() {
           }}
           sx={{ my: "6px", display: "flex", flexDirection: "row", justifyContent: "start", gap: "12px" }}
         >
-          <ToggleButtonCustom
-            value={"40"}
-            sx={{
-              color: "rgba(33,33,33,1)",
-              width: "35px",
-              height: "35px",
-              fontSize: "13px",
-              boxShadow: "0 0 0 1px #ccc",
-              backgroundColor: "#fff",
-              border: "0",
-              borderRadius: 0,
-            }}
-          >
-            40
-          </ToggleButtonCustom>
-          <ToggleButtonCustom
-            value={"41"}
-            sx={{
-              color: "rgba(33,33,33,1)",
-              width: "35px",
-              height: "35px",
-              fontSize: "13px",
-              boxShadow: "0 0 0 1px #ccc",
-              backgroundColor: "#fff",
-              border: "0",
-              borderRadius: 0,
-            }}
-          >
-            41
-          </ToggleButtonCustom>
+          {data.size.map((size, i) => {
+            return (
+              <ToggleButtonCustom
+                value={size}
+                key={i}
+                sx={{
+                  color: "rgba(33,33,33,1)",
+                  width: "35px",
+                  height: "35px",
+                  fontSize: "13px",
+                  boxShadow: "0 0 0 1px #ccc",
+                  backgroundColor: "#fff",
+                  border: "0",
+                  borderRadius: 0,
+                }}
+              >
+                {size}
+              </ToggleButtonCustom>
+            );
+          })}
         </ToggleButtonGroup>
       </Stack>
       <Divider sx={{ borderStyle: "dotted" }} />
       <Typography variant="body1" color="initial" sx={{ py: "16px", color: "#77a464", fontWeight: "700" }}>
-        Còn Hàng
+        {data.quantity > 0 ? `Còn Hàng ${data.quantity}` : "Hết Hàng"}
       </Typography>
       <Stack direction={"row"} sx={{ height: "56px", py: ".5rem", mb: "1rem", gap: "8px" }}>
         <ButtonGroup variant="outlined" sx={{ mr: "8px" }}>
@@ -189,8 +208,21 @@ function ProductContent() {
             +
           </ButtonBase>
         </ButtonGroup>
-        <CartButton component={Link}>Thêm Vào Giỏ Hàng</CartButton>
-        <CartButton component={Link} to={"/cart"}>
+        <CartButton
+          component="a"
+          onClick={() => {
+            handlePushCard();
+          }}
+        >
+          Thêm Vào Giỏ Hàng
+        </CartButton>
+        <CartButton
+          component="a"
+          onClick={() => {
+            handlePushCard();
+            navigate("/cart");
+          }}
+        >
           Mua Ngay
         </CartButton>
       </Stack>
@@ -210,11 +242,11 @@ function ProductContent() {
       </Button>
       <Divider sx={{ borderStyle: "dotted" }} />
       <TextInfo variant="body1" color="initial">
-        Mã: Black
+        Mã: {data.productId}
       </TextInfo>
       <Divider sx={{ borderStyle: "dotted" }} />
       <TextInfo variant="body1" color="initial">
-        Danh Mục: Tất
+        Danh Mục: {data.category}
       </TextInfo>
 
       <Stack direction={"row"} sx={{ mt: "1rem" }}>

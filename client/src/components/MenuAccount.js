@@ -1,12 +1,16 @@
 import { Box, Button, styled, Divider } from "@mui/material";
 import { Link } from "react-router-dom";
-import { useDispatch } from "react-redux";
 import { setFormData, setFormStatus } from "../redux/slice/appSlice";
 import { LOG_IN, REGISTER } from "../constant";
+import { useSelector, useDispatch } from "react-redux";
+import { logoutUser } from "../redux/slice/userSlice";
 import React from "react";
+import { useSnackbar } from "notistack";
 
 function MenuAccount() {
+  const user = useSelector((state) => state.user);
   const dispatch = useDispatch();
+  const { enqueueSnackbar } = useSnackbar();
   const Btn = styled(Button)({
     width: "100%",
     justifyContent: "start",
@@ -17,9 +21,15 @@ function MenuAccount() {
     dispatch(setFormStatus(true));
     dispatch(setFormData(data));
   };
+
+  const handleLogout = () => {
+    dispatch(logoutUser(""));
+    enqueueSnackbar("Đăng xuất thành công", { variant: "success" });
+  };
+
   return (
     <Box sx={{ p: "1.5rem" }}>
-      {false ? (
+      {user.status ? (
         <>
           <Btn component={Link} to={"/profile"}>
             Thông Tin Tài Khoản
@@ -29,7 +39,13 @@ function MenuAccount() {
             Giỏ Hàng
           </Btn>
           <Divider></Divider>
-          <Btn component={Link}>Đăng Xuất</Btn>
+          <Btn
+            onClick={() => {
+              handleLogout();
+            }}
+          >
+            Đăng Xuất
+          </Btn>
         </>
       ) : (
         <>

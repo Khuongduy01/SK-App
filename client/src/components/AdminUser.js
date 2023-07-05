@@ -34,32 +34,32 @@ function AdminUser() {
   };
 
   const columns = [
-    { field: "userId", headerName: "ID", minWidth: 150 },
-    { field: "userName", headerName: "userName", minWidth: 150 },
-    { field: "phone", headerName: "phone", minWidth: 150 },
+    { field: "userId", headerName: "ID Người Dùng", minWidth: 150 },
+    { field: "userName", headerName: "Tên Tài Khoản", minWidth: 150 },
+    { field: "phone", headerName: "Số Điện Thoại", minWidth: 150 },
     {
       field: "address",
-      headerName: "address",
+      headerName: "Địa Chỉ",
       minWidth: 150,
     },
     {
       field: "password",
-      headerName: "password",
+      headerName: "Mật Khẩu",
       minWidth: 150,
     },
     {
       field: "prefer",
-      headerName: "prefer",
+      headerName: "Yêu Thích",
       minWidth: 150,
     },
     {
-      field: "category",
-      headerName: "category",
+      field: "gmail",
+      headerName: "Gmail",
       minWidth: 150,
     },
     {
       field: "order",
-      headerName: "order",
+      headerName: "Order",
       minWidth: 150,
     },
   ];
@@ -67,20 +67,22 @@ function AdminUser() {
   return (
     <Stack>
       <TableContainer>
-        <DataGrid
-          getRowId={(row) => row.userId}
-          rows={userLists}
-          columns={columns}
-          initialState={{
-            pagination: {
-              paginationModel: { page: 0, pageSize: 5 },
-            },
-          }}
-          pageSizeOptions={[5, 10]}
-          onCellClick={(sell) => {
-            setUser(sell.row);
-          }}
-        />
+        {userLists && (
+          <DataGrid
+            getRowId={(row) => row.userId}
+            rows={userLists}
+            columns={columns}
+            initialState={{
+              pagination: {
+                paginationModel: { page: 0, pageSize: 5 },
+              },
+            }}
+            pageSizeOptions={[5, 10]}
+            onCellClick={(sell) => {
+              setUser(sell.row);
+            }}
+          />
+        )}
       </TableContainer>
       <Stack gap={2} direction={"row"} sx={{ marginLeft: "auto", position: "relative" }}>
         <Button
