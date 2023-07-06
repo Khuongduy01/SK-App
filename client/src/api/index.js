@@ -1,5 +1,5 @@
 import axios from "axios";
-import { AUTHENTICATION_SNEAKER_APP, BASE_URL_SERVER } from "../constant";
+import { AUTHENTICATION_SNEAKER_APP, BASE_URL_SERVER, SELECT_ADDRESS_API } from "../constant";
 
 export const API = axios.create({
   baseURL: `${BASE_URL_SERVER}api/`,
@@ -68,3 +68,7 @@ export const fetchUpdateProduct = (productId, formData) => {
 };
 
 export const fetchDeleteProduct = (productId) => API.delete(`products/${productId}`);
+
+// get select address api
+
+export const fetchSelectAddress = (productId) => axios.get(SELECT_ADDRESS_API);

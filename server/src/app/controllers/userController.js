@@ -27,7 +27,7 @@ class userController {
         const { userId } = jwt.verify(token.split(" ")[1], "mk");
         console.log(userId);
         userModel.findOne({ userId: userId }).then((user) => {
-          if (user.userId) {
+          if (user?.userId) {
             return res.status(200).json({
               message: "Đăng Nhập Thành Công",
               token: token.split(" ")[1],
@@ -88,6 +88,7 @@ class userController {
 
   update(req, res, next) {
     const data = req.body;
+
     console.log(data);
     userModel
       .findOneAndUpdate({ userId: data.userId }, data)
@@ -100,18 +101,20 @@ class userController {
   // [Delete] /api/user/
 
   delete(req, res, next) {
-    const userId = req.params.userId;
-
-    userModel
-      .findOneAndDelete({ userId: userId })
-      .then((data) => {
-        if (data) {
-          return res.status(200).json({ message: "Xóa Tài Khoản Thành Công", data: user });
-        } else {
-          return res.status(400).json({ message: "Tài Khoản Không Tồn Tại", data: user });
-        }
-      })
-      .catch(next);
+    const userIdParams = req.params.userId;
+    const userId = req.body;
+    if (userIdParams === userId) {
+      userModel
+        .findOneAndDelete({ userId: userId })
+        .then((data) => {
+          if (data) {
+            return res.status(200).json({ message: "Xóa Tài Khoản Thành Công", data: user });
+          } else {
+            return res.status(400).json({ message: "Tài Khoản Không Tồn Tại", data: user });
+          }
+        })
+        .catch(next);
+    }
   }
 }
 

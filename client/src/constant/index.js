@@ -12,3 +12,5 @@ export const PRODUCT_CATEGORY = ["Quần Áo", "Tất", "Dép", "Kính", "Balo",
 export const PRODUCT_BRAND_SHOE = ["NIKE", "ADIDAS", "PUMA", "HERSCHEL"];
 
 export const BASE_URL_SERVER = "http://localhost:3001/";
+
+export const SELECT_ADDRESS_API = "https://provinces.open-api.vn/api/?depth=3";

@@ -41,9 +41,12 @@ export const userSlice = createSlice({
         return index !== action.payload.index && item !== action.payload.cart;
       });
     },
+    updateUser: (state, action) => {
+      state.data = { ...state.data, ...action.payload };
+    },
   },
 });
 
-export const { pushCartItem, deleteCartItem, loginUser, logoutUser } = userSlice.actions;
+export const { pushCartItem, deleteCartItem, loginUser, logoutUser, updateUser } = userSlice.actions;
 
 export default userSlice.reducer;

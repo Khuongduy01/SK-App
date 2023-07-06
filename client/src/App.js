@@ -8,26 +8,32 @@ import FormSignIn from "./components/FormSignIn";
 import { AppBar, Box } from "@mui/material";
 import { useEffect } from "react";
 import { getAllProducts } from "./util/products";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setProducts } from "./redux/slice/productsSlice";
-import { postLogin } from "./util/user";
+import { postLogin, updateUser } from "./util/user";
 import { loginUser } from "./redux/slice/userSlice";
 
 function App() {
   const dispatch = useDispatch();
+  const carts = useSelector((state) => state.user.data.carts);
 
   useEffect(() => {
     getAllProducts().then((products) => {
-      dispatch(setProducts(products.data));
+      dispatch(setProducts(products?.data));
     });
   }, [dispatch]);
 
   useEffect(() => {
     postLogin().then((res) => {
-      console.log(res);
       dispatch(loginUser(res?.data));
     });
   }, [dispatch]);
+
+  useEffect(() => {
+    if (carts) {
+      updateUser({ carts: carts }).then((res) => {});
+    }
+  }, [carts]);
 
   return (
     <div className="App">
@@ -36,7 +42,7 @@ function App() {
         <BottomHeader></BottomHeader>
       </AppBar>
 
-      <Box sx={{ mt: { xs: "76px", md: "158px" } }}>
+      <Box sx={{ mt: { xs: "76px", md: "158px", minHeight: "300px" } }}>
         <Outlet></Outlet>
       </Box>
 

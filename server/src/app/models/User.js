@@ -20,14 +20,16 @@ const User = new Schema(
     gmail: {
       type: String,
       require: true,
+      default: "",
     },
     phone: {
       type: Number,
       maxLength: 11,
       default: 0,
     },
-
-    address: { type: String, default: "" },
+    fullName: { type: String, default: "" },
+    address: {},
+    addressDescription: { type: String, default: "" },
     password: {
       type: String,
       required: true,

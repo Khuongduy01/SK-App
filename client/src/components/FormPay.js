@@ -15,6 +15,7 @@ import {
 } from "@mui/material";
 import { NavigateBefore } from "@mui/icons-material";
 import { Link } from "react-router-dom";
+import SelectAddress from "./SelectAddress";
 
 function FormPay() {
   const StyledTextarea = styled(TextareaAutosize)({
@@ -86,60 +87,7 @@ function FormPay() {
             },
           }}
         />
-        <Grid container>
-          <Grid item xs={12} lg={6}>
-            <FormControl fullWidth sx={{ padding: "6px" }}>
-              <Select
-                value={0}
-                sx={{
-                  "& .MuiSelect-select": {
-                    p: "12px",
-                  },
-                }}
-              >
-                <MenuItem value={0}>Chọn Tỉnh / Thành</MenuItem>
-                <MenuItem value={10}>Ten</MenuItem>
-                <MenuItem value={20}>Twenty</MenuItem>
-                <MenuItem value={30}>Thirty</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} lg={6}>
-            <FormControl fullWidth sx={{ padding: "6px" }}>
-              <Select
-                value={0}
-                sx={{
-                  "& .MuiSelect-select": {
-                    p: "12px",
-                  },
-                }}
-              >
-                <MenuItem value={0}>Chọn Quận / Huyện</MenuItem>
-                <MenuItem value={10}>Ten</MenuItem>
-                <MenuItem value={20}>Twenty</MenuItem>
-                <MenuItem value={30}>Thirty</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} lg={6}>
-            <FormControl fullWidth sx={{ padding: "6px" }}>
-              <Select
-                value={0}
-                sx={{
-                  "& .MuiSelect-select": {
-                    p: "12px",
-                  },
-                }}
-              >
-                <MenuItem value={0}>Chọn Phường / Xã</MenuItem>
-                <MenuItem value={10}>Ten</MenuItem>
-                <MenuItem value={20}>Twenty</MenuItem>
-                <MenuItem value={30}>Thirty</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-        </Grid>
-
+        <SelectAddress handleSelect={() => {}}></SelectAddress>
         <Box
           sx={{
             padding: "6px",
